@@ -61,6 +61,8 @@ initlog(int dev, struct superblock *sb)
   log.start = sb->logstart;
   log.size = sb->nlog;
   log.dev = dev;
+  log.committing = 0;	// uninitialized
+  log.outstanding = 0;	// uninitialized
   recover_from_log();
 }
 

@@ -2063,7 +2063,7 @@ sbrkbasic(char *s)
 void
 sbrkmuch(char *s)
 {
-  enum { BIG=100*1024*1024 };
+  enum { BIG=15*1024*1024 };	// guest has 16MB of RAM instead of 128MB
   char *c, *oldbrk, *a, *lastaddr, *p;
   uint64 amt;
 

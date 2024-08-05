@@ -186,6 +186,7 @@ iinit()
   initlock(&itable.lock, "itable");
   for(i = 0; i < NINODE; i++) {
     initsleeplock(&itable.inode[i].lock, "inode");
+    itable.inode[i].ref = 0;   // otherwise iget panics (cannot find free inodes) if that memory is not initialized with 0
   }
 }
 

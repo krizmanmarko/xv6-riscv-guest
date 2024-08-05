@@ -5,11 +5,16 @@
 #include "defs.h"
 
 volatile static int started = 0;
+__attribute__ ((aligned (16))) char stack0[4096 * NCPU];
 
 // start() jumps here in supervisor mode on all CPUs.
 void
 main()
 {
+  // legacy code from start.c (machine mode code)
+  w_sie(r_sie() | SIE_SEIE | SIE_STIE | SIE_SSIE);
+  w_stimecmp(r_time() + 1000000);
+
   if(cpuid() == 0){
     consoleinit();
     printfinit();

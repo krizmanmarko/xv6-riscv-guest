@@ -16,4 +16,4 @@ kernel/kernel
 user/usys.S
 .gdbinit
 tags
-kerne/xv6.bin
+kernel/xv6.bin

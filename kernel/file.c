@@ -23,8 +23,6 @@ void
 fileinit(void)
 {
   initlock(&ftable.lock, "ftable");
-  for (int i = 0; i < NFILE; i++)
-    memset(&ftable.file[i], 0, sizeof(struct file));   // uninitialized (fail to open console in /init
 }
 
 // Allocate a file structure.

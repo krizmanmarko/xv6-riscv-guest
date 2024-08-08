@@ -49,7 +49,6 @@ binit(void)
     initsleeplock(&b->lock, "buffer");
     bcache.head.next->prev = b;
     bcache.head.next = b;
-    b->refcnt = 0;	// uninitialized memory panic("bget: no buffers");
   }
 }
 

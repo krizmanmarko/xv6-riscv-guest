@@ -55,9 +55,6 @@ procinit(void)
     initlock(&p->lock, "proc");
     p->state = UNUSED;
     p->kstack = KSTACK((int) (p - proc));
-    for (int i = 0; i < NOFILE; i++) {
-      p->ofile[i] = 0; // uninitialized
-    }
   }
 }
 
@@ -127,8 +124,6 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
-  p->killed = 0;	// uninitialized
-  p->xstate = 0;	// uninitialized
 
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
@@ -453,9 +448,6 @@ scheduler(void)
   struct cpu *c = mycpu();
 
   c->proc = 0;
-  // TODO: initialize struct context
-  c->noff = 0;		// uninitialized
-  c->intena = 0;	// uninitialized
   for(;;){
     // The most recent process to run may have had interrupts
     // turned off; enable them to avoid a deadlock if all

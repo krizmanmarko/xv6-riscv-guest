@@ -1,6 +1,10 @@
 K=kernel
 U=user
 
+ADDRESS ?= 0x80100000
+
+FNAME = xv6-$(ADDRESS)
+
 OBJS = \
   $K/entry.o \
   $K/console.o \
@@ -81,10 +85,14 @@ endif
 LDFLAGS = -z max-page-size=4096
 
 $K/kernel: $(OBJS) $K/kernel.ld $U/initcode
-	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS) 
+	$(LD) $(LDFLAGS) --section-start=.text=$(ADDRESS) -T $K/kernel.ld -o $K/kernel $(OBJS) 
 	$(OBJDUMP) -S $K/kernel > $K/kernel.asm
 	$(OBJDUMP) -t $K/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $K/kernel.sym
-	$(OBJCOPY) -O binary $@ $K/xv6.bin      # for hypervisor
+	$(OBJCOPY) -O binary $@ $K/$(FNAME).bin      # for hypervisor
+
+%.o: %.c
+#  recipe to execute (built-in):
+	$(COMPILE.c) -DKERNBASE=$(ADDRESS)L $(OUTPUT_OPTION) $<
 
 $U/initcode: $U/initcode.S
 	$(CC) $(CFLAGS) -march=rv64g -nostdinc -I. -Ikernel -c $U/initcode.S -o $U/initcode.o

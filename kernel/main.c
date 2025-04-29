@@ -5,6 +5,7 @@
 #include "defs.h"
 
 volatile static int started = 0;
+extern char _entry;
 __attribute__ ((aligned (16))) char stack0[4096 * NCPU];
 
 // start() jumps here in supervisor mode on all CPUs.
@@ -14,6 +15,14 @@ main()
   // legacy code from start.c (machine mode code)
   w_sie(r_sie() | SIE_SEIE | SIE_STIE | SIE_SSIE);
   w_stimecmp(r_time() + 1000000);
+  for (int i = 0; i < NCPU; i++) {
+    asm volatile("mv a0, %0" :: "r" (i) : "a0");
+    asm volatile("mv a1, %0" :: "r" (&_entry) : "a1");
+    asm volatile("li a2, 0" ::: "a2");
+    asm volatile("li a6, 0" ::: "a6");
+    asm volatile("li a7, 0x48534d" ::: "a7");
+    asm volatile("ecall");
+  }
 
   if(cpuid() == 0){
     consoleinit();

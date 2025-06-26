@@ -84,10 +84,10 @@ endif
 
 LDFLAGS = -z max-page-size=4096
 
-$K/kernel: $(OBJS) $K/kernel.ld $U/initcode
-	$(LD) $(LDFLAGS) --section-start=.text=$(ADDRESS) -T $K/kernel.ld -o $K/kernel $(OBJS) 
-	$(OBJDUMP) -S $K/kernel > $K/kernel.asm
-	$(OBJDUMP) -t $K/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $K/kernel.sym
+$K/kernel-$(ADDRESS): $(OBJS) $K/kernel.ld $U/initcode
+	$(LD) $(LDFLAGS) --section-start=.text=$(ADDRESS) -T $K/kernel.ld -o $@ $(OBJS) 
+	$(OBJDUMP) -S $@ > $K/kernel.asm
+	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $K/kernel.sym
 	$(OBJCOPY) -O binary $@ $K/$(FNAME).bin      # for hypervisor
 
 %.o: %.c
@@ -157,7 +157,7 @@ fs.img: mkfs/mkfs README $(UPROGS)
 clean: 
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*/*.o */*.d */*.asm */*.sym \
-	$U/initcode $U/initcode.out $K/kernel $K/xv6.bin fs.img \
+	$U/initcode $U/initcode.out $K/kernel-* $K/xv6-*.bin fs*.img \
 	mkfs/mkfs .gdbinit \
         $U/usys.S \
 	$(UPROGS)
@@ -172,17 +172,17 @@ ifndef CPUS
 CPUS := 4
 endif
 
-QEMUOPTS = -machine virt -kernel $K/kernel -m 256M -smp $(CPUS) -nographic
+QEMUOPTS = -machine virt -kernel $K/kernel-$(ADDRESS) -m 256M -smp $(CPUS) -nographic
 QEMUOPTS += -global virtio-mmio.force-legacy=false
 QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
 QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 
-qemu: $K/kernel fs.img
+qemu: $K/kernel-$(ADDRESS) fs.img
 	$(QEMU) $(QEMUOPTS)
 
 .gdbinit: .gdbinit.tmpl-riscv
 	sed "s/:1234/:$(GDBPORT)/" < $^ > $@
 
-qemu-gdb: $K/kernel .gdbinit fs.img
+qemu-gdb: $K/kernel-$(ADDRESS) .gdbinit fs.img
 	@echo "*** Now run 'gdb' in another window." 1>&2
 	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
